@@ -1,4 +1,4 @@
-# k8s-vps-cluster-lab
+# data-platform-manifests
 Documentation of setting up Kubernetes (K3s) on a multi-node cluster, from server hardening to installations.
 ```
 kubernetes-on-vps/
