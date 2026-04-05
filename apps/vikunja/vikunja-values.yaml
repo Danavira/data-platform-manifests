@@ -64,6 +64,12 @@ vikunja:
 
 postgresql:
   enabled: false
+  global:
+    postgresql:
+      auth:
+        database: vikunja
+        username: vikunja
+        password: vikunja
   auth:
     database: vikunja
     username: vikunja
