@@ -1,5 +1,5 @@
 global:
-  domain: argocd.danavira.com
+  domain: argo.danavira.com
 
 server:
   ingress:
