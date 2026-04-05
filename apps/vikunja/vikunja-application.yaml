@@ -9,8 +9,8 @@ spec:
     server: https://kubernetes.default.svc
     namespace: vikunja
   sources:
-    - repoURL: https://bjw-s.github.io/helm-charts
-      chart: app-template
+    - repoURL: oci://ghcr.io/go-vikunja
+      chart: helm-chart
       targetRevision: "1.0.0"
       helm:
         valueFiles:
