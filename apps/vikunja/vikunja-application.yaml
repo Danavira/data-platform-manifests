@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vikunja
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: vikunja
+  sources:
+    - repoURL: https://bjw-s.github.io/helm-charts
+      chart: app-template
+      targetRevision: "1.0.0"
+      helm:
+        valueFiles:
+          - $values/apps/vikunja/vikunja-values.yaml
+    - repoURL: https://github.com/Danavira/data-platform-manifests.git
+      targetRevision: main
+      ref: values
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true  
+    syncOptions:
+      - CreateNamespace=true
