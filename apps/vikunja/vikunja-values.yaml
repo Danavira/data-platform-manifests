@@ -64,6 +64,10 @@ vikunja:
 
 postgresql:
   enabled: false
+  auth:
+    database: vikunja
+    username: vikunja
+    password: vikunja
 
 additionalObjects: []
 
