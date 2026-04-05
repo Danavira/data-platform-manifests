@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-cicd
+  namespace: hello-cicd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-cicd
+  template:
+    metadata:
+      labels:
+        app: hello-cicd
+    spec:
+      containers:
+        - name: hello-cicd
+          image: ghcr.io/danavira/hello-cicd:latest
+          imagePullPolicy: Always
+      imagePullSecrets:
+        - name: ghcr-pull-secret

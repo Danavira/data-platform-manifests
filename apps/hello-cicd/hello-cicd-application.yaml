@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hello-cicd
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: hello-cicd=ghcr.io/danavira/hello-cicd
+    argocd-image-updater.argoproj.io/hello-cicd.update-strategy: latest
+    argocd-image-updater.argoproj.io/hello-cicd.pull-secret: secret:argocd/ghcr-creds#token
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/git-repository: https://github.com/Danavira/data-platform-manifests.git
+    argocd-image-updater.argoproj.io/git-branch: main
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Danavira/data-platform-manifests.git
+    targetRevision: main
+    path: apps/hello-cicd
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: hello-cicd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
