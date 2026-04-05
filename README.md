@@ -13,8 +13,15 @@ data-platform-manifests/
     ├── argocd/
     │   ├── argocd-values.yaml
     │   ├── argocd-application.yaml
-    │   ├── data-platform-manifests-app.yaml
-    │   └── data-platform-configs-app.yaml
+    │   ├── data-platform-manifests-application.yaml
+    │   └── data-platform-configs-application.yaml
+    │
+    ├── argocd-image-updater/
+    │   └── argocd-image-updater-application.yaml
+    │
+    ├── hello-cicd/
+    │   ├── hello-cicd-application.yaml
+    │   └── deployment.yaml
     │
     ├── vikunja/
     │   ├── vikunja-application.yaml
