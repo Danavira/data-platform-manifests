@@ -62,5 +62,8 @@ vikunja:
     # https://vikunja.io/docs/config-options
     VIKUNJA_DATABASE_TYPE: "sqlite"
 
+postgresql:
+  enabled: false
+
 additionalObjects: []
 
