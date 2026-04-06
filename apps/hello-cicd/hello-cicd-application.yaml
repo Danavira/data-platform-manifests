@@ -18,6 +18,8 @@ spec:
     repoURL: https://github.com/Danavira/data-platform-manifests.git
     targetRevision: main
     path: apps/hello-cicd
+    directory:
+      exclude: "*-application.yaml"
   destination:
     server: https://kubernetes.default.svc
     namespace: hello-cicd
