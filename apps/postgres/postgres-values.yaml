@@ -5,6 +5,8 @@ image:
   registry: ghcr.io
 
 global:
+  security:
+    allowInsecureImages: true
   postgresql:
     auth:
       username: postgres
