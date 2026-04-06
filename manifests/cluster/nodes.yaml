@@ -5,7 +5,7 @@
 apiVersion: v1
 kind: Node
 metadata:
-  name: danavira-vps-2
+  name: danavira-worker-1
   labels:
     role: stateful
 spec:
@@ -18,7 +18,7 @@ spec:
 apiVersion: v1
 kind: Node
 metadata:
-  name: danavira-vps-3
+  name: danavira-worker-2
   labels:
     role: compute
 spec:
