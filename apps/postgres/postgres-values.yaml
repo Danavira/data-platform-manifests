@@ -1,0 +1,31 @@
+## Bitnami PostgreSQL Helm chart values
+## https://github.com/bitnami/charts/tree/main/bitnami/postgresql
+
+global:
+  postgresql:
+    auth:
+      username: postgres
+      # password: set via existingSecret (see auth.existingSecret below)
+      database: postgres
+
+auth:
+  username: postgres
+  database: postgres
+  # Secret synced from Infisical via InfisicalSecret CRD.
+  # Keys required: postgres-password (superuser), password (username above)
+  existingSecret: postgres-credentials
+
+primary:
+  persistence:
+    enabled: true
+    size: 10Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+readReplicas:
+  replicaCount: 0
