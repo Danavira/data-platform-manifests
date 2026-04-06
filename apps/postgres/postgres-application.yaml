@@ -11,7 +11,7 @@ spec:
   source:
     repoURL: https://github.com/Danavira/data-platform-manifests.git
     targetRevision: main
-    path: manifests/stateful/postgres
+    path: manifests/postgres
   syncPolicy:
     automated:
       prune: true
