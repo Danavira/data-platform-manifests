@@ -26,7 +26,10 @@ rbac:
   # Create ClusterRole and ClusterRoleBinding
   create: true
   # Additional rules to add to the ClusterRole
-  additionalRules: []
+  additionalRules:
+    - apiGroups: ["metrics.k8s.io"]
+      resources: ["nodes", "pods"]
+      verbs: ["get", "list"]
 
   # Privileged permissions (disabled by default for security)
   # Enable these based on features you need:
@@ -165,7 +168,7 @@ traffic:
   #   http://prometheus-server.monitoring:80
   #   http://vmsingle.victoria-metrics:8428
   #   http://vmselect.victoria-metrics:8481/select/0/prometheus
-  prometheusUrl: ""
+  prometheusUrl: "http://kube-prometheus-stack-prometheus.monitoring:9090"
 
 # Persistence for SQLite timeline storage
 # Required when timeline.storage is "sqlite" (readOnlyRootFilesystem prevents local writes)
