@@ -8,16 +8,10 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: stateful
-  sources:
-    - repoURL: https://charts.bitnami.com/bitnami
-      chart: postgresql
-      targetRevision: "16.x.x"
-      helm:
-        valueFiles:
-          - $values/apps/postgres/postgres-values.yaml
-    - repoURL: https://github.com/Danavira/data-platform-manifests.git
-      targetRevision: main
-      ref: values
+  source:
+    repoURL: https://github.com/Danavira/data-platform-manifests.git
+    targetRevision: main
+    path: manifests/stateful/postgres
   syncPolicy:
     automated:
       prune: true
