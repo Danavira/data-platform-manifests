@@ -4,6 +4,7 @@ global:
 configs:
   params:
     server.insecure: true
+    server.exec.enabled: true
 
 server:
   ingress:
