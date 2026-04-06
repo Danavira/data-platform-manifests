@@ -1,6 +1,9 @@
 ## Bitnami PostgreSQL Helm chart values
 ## https://github.com/bitnami/charts/tree/main/bitnami/postgresql
 
+image:
+  registry: ghcr.io
+
 global:
   postgresql:
     auth:
