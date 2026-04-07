@@ -1,7 +1,7 @@
 # danavira-vps-1: control plane — no taints, runs cluster-wide tooling
 # (ArgoCD, Prometheus, Grafana, Radar, ingress, cert-manager)
 
-# danavira-vps-2: stateful node — Postgres, ClickHouse
+# danavira-worker-1: stateful node — Postgres, ClickHouse
 apiVersion: v1
 kind: Node
 metadata:
@@ -14,7 +14,7 @@ spec:
       value: stateful
       effect: NoSchedule
 ---
-# danavira-vps-3: compute node — Spark, Airflow, Kafka, Debezium
+# danavira-worker-2: compute node — Spark, Airflow, Kafka, Debezium
 apiVersion: v1
 kind: Node
 metadata:
