@@ -1,9 +1,13 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: stateful
+  name: postgres
+  labels:
+    postgres-credentials: "true"
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: compute
+  name: airflow
+  labels:
+    postgres-credentials: "true"

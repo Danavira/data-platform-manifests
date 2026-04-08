@@ -9,7 +9,7 @@ spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: stateful
+    namespace: postgres
   source:
     repoURL: https://github.com/Danavira/data-platform-manifests.git
     targetRevision: main
