@@ -1,0 +1,16 @@
+executor: KubernetesExecutor
+
+dags:
+  gitSync:
+    enabled: true
+    repo: https://github.com/Danavira/batch-etl.git
+    branch: main
+    subPath: dags
+    period: 60s
+
+webserver:
+  ingress:
+    enabled: false
+
+postgresql:
+  enabled: true
