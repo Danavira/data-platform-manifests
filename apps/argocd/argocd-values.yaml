@@ -6,6 +6,11 @@ configs:
     server.insecure: true
     server.exec.enabled: true
 
+repoServer:
+  env:
+    - name: ARGOCD_EXEC_TIMEOUT
+      value: "300s"
+
 server:
   ingress:
     enabled: true

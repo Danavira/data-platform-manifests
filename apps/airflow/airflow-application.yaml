@@ -4,7 +4,7 @@ metadata:
   name: airflow
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:
@@ -13,7 +13,7 @@ spec:
   sources:
     - repoURL: https://airflow.apache.org
       chart: airflow
-      targetRevision: "1.15.0"
+      targetRevision: "1.16.0"
       helm:
         valueFiles:
           - $values/apps/airflow/airflow-values.yaml
