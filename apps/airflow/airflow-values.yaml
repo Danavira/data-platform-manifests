@@ -9,14 +9,14 @@ dags:
     period: 60s
 
 scheduler:
-  # nodeSelector:
-  #   role: compute
+  nodeSelector:
+    role: compute
 
 webserver:
   ingress:
     enabled: false
-  # nodeSelector:
-  #   role: compute
+  nodeSelector:
+    role: compute
 
 postgresql:
   enabled: true
