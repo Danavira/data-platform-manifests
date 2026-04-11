@@ -212,7 +212,7 @@ tmpfs /run/shm tmpfs defaults,noexec,nosuid,nodev,size=512M 0 0
 sudo mount -o remount /run/shm
 ```
 
-16. Disable Swap (Important for kubernetes nodes)
+16. Disable Swap (Optional)
 ```
 # check swap
 swapon --show
@@ -266,4 +266,3 @@ brute force protection active
 Now create a provider snapshot.
 
 This becomes your golden VPS template.
-```
