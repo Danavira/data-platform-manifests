@@ -1,22 +1,22 @@
-# executor: KubernetesExecutor
+executor: KubernetesExecutor
 
-# dags:
-#   gitSync:
-#     enabled: true
-#     repo: https://github.com/Danavira/batch-etl.git
-#     branch: main
-#     subPath: dags
-#     period: 60s
+dags:
+  gitSync:
+    enabled: true
+    repo: https://github.com/Danavira/batch-etl.git
+    branch: main
+    subPath: dags
+    period: 60s
 
-# scheduler:
-#   # nodeSelector:
-#   #   role: compute
+scheduler:
+  # nodeSelector:
+  #   role: compute
 
-# webserver:
-#   ingress:
-#     enabled: false
-#   # nodeSelector:
-#   #   role: compute
+webserver:
+  ingress:
+    enabled: false
+  # nodeSelector:
+  #   role: compute
 
-# postgresql:
-#   enabled: true
+postgresql:
+  enabled: true
