@@ -20,10 +20,20 @@ scheduler:
     role: compute
 
 webserver:
-  ingress:
-    enabled: false
   nodeSelector:
     role: compute
+
+# ingress:
+#   web:
+#     enabled: true
+#     ingressClassName: nginx
+#     hosts:
+#       - name: airflow.danavira.com
+#         tls:
+#           enabled: true
+#           secretName: airflow-tls
+#     annotations:
+#       cert-manager.io/cluster-issuer: letsencrypt-cloudflare
 
 postgresql:
   enabled: true
