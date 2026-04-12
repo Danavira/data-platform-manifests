@@ -39,4 +39,4 @@ postgresql:
   enabled: false
 
 data:
-  metadataSecretName: airflow-metadata-connection
+  metadataSecretName: airflow-metadata
