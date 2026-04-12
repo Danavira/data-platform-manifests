@@ -3,15 +3,15 @@ executor: KubernetesExecutor
 createUserJob:
   useHelmHooks: false
   applyCustomEnv: false
-  extraAnnotations:
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+  # extraAnnotations:
+  #   argocd.argoproj.io/hook: Sync
+  #   argocd.argoproj.io/hook-delete-policy: HookSucceeded
 migrateDatabaseJob:
   useHelmHooks: false
   applyCustomEnv: false
-  extraAnnotations:
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+  # extraAnnotations:
+  #   argocd.argoproj.io/hook: Sync
+  #   argocd.argoproj.io/hook-delete-policy: HookSucceeded
 
 dags:
   gitSync:
