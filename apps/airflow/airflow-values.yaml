@@ -36,4 +36,7 @@ webserver:
 #       cert-manager.io/cluster-issuer: letsencrypt-cloudflare
 
 postgresql:
-  enabled: true
+  enabled: false
+
+data:
+  metadataSecretName: airflow-metadata-connection
