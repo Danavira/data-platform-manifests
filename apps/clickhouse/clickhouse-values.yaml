@@ -1,0 +1,16 @@
+shards: 1
+replicaCount: 1
+
+nodeSelector:
+  role: stateful
+
+tolerations:
+  - key: role
+    value: stateful
+    effect: NoSchedule
+
+persistence:
+  size: 10Gi
+
+zookeeper:
+  enabled: false

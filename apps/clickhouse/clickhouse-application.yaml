@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: clickhouse
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: clickhouse
+  sources:
+    - repoURL: https://charts.bitnami.com/bitnami
+      chart: clickhouse
+      targetRevision: "9.4.4"
+      helm:
+        valueFiles:
+          - $values/apps/clickhouse/clickhouse-values.yaml
+    - repoURL: https://github.com/Danavira/data-platform-manifests.git
+      targetRevision: main
+      ref: values
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
