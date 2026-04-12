@@ -11,7 +11,7 @@ spec:
     server: https://kubernetes.default.svc
     namespace: airflow
   sources:
-    - repoURL: https://airflow.apache.org
+    - repoURL: oci://ghcr.io/danavira/helm-charts
       chart: airflow
       targetRevision: "1.16.0"
       helm:
