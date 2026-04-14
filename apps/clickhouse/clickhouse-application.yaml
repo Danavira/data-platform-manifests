@@ -11,7 +11,7 @@ spec:
     server: https://kubernetes.default.svc
     namespace: clickhouse
   sources:
-    - repoURL: oci://ghcr.io/bitnamicharts/clickhouse
+    - repoURL: oci://ghcr.io/danavira/helm-charts/clickhouse
       chart: clickhouse
       targetRevision: "9.4.4"
       helm:
