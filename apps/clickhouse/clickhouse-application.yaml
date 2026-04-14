@@ -11,7 +11,7 @@ spec:
     server: https://kubernetes.default.svc
     namespace: clickhouse
   sources:
-    - repoURL: https://charts.bitnami.com/bitnami
+    - repoURL: oci://registry-1.docker.io/bitnamicharts/clickhouse
       chart: clickhouse
       targetRevision: "9.4.4"
       helm:
