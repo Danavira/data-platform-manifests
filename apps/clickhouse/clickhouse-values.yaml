@@ -1,5 +1,9 @@
+global:
+  security:
+    allowInsecureImages: true
+
 image:
-  registry: ghcr.io
+  registry: docker.io
   repository: clickhouse/clickhouse-server
   tag: latest
 
