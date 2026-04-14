@@ -6,6 +6,10 @@ configs:
     server.insecure: true
     server.exec.enabled: true
     controller.repo.server.timeout.seconds: "300"
+  rbac:
+    policy.csv: |
+      p, role:admin, exec, create, */*, allow
+    policy.default: role:admin
 
 repoServer:
   env:
