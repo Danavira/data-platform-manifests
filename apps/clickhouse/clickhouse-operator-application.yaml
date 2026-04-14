@@ -16,6 +16,11 @@ spec:
     path: deploy/operator
     directory:
       include: "clickhouse-operator-install-bundle.yaml"
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jqPathExpressions:
+        - .spec.template.spec.containers[].env[].valueFrom.resourceFieldRef.divisor
   syncPolicy:
     automated:
       prune: true

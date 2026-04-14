@@ -33,7 +33,7 @@ spec:
               effect: NoSchedule
           containers:
             - name: clickhouse
-              image: docker.io/clickhouse/clickhouse-server:latest
+              image: docker.io/clickhouse/clickhouse-server:26.3.8.4
     serviceTemplates:
       - name: clickhouse-service
         spec:
