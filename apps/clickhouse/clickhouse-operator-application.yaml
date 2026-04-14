@@ -15,7 +15,7 @@ spec:
     targetRevision: master
     path: deploy/operator
     directory:
-      exclude: "*ansible*"
+      include: "clickhouse-operator-install-bundle.yaml"
   syncPolicy:
     automated:
       prune: true
