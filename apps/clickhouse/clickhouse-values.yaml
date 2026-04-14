@@ -1,3 +1,8 @@
+image:
+  registry: ghcr.io
+  repository: clickhouse/clickhouse-server
+  tag: latest
+
 shards: 1
 replicaCount: 1
 
