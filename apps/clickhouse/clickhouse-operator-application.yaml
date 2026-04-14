@@ -1,19 +1,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: clickhouse
+  name: clickhouse-operator
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: clickhouse
+    namespace: clickhouse-operator
   source:
-    repoURL: https://github.com/Danavira/data-platform-manifests.git
-    targetRevision: main
-    path: manifests/clickhouse
+    repoURL: https://github.com/Altinity/clickhouse-operator.git
+    targetRevision: master
+    path: deploy/operator
   syncPolicy:
     automated:
       prune: true
