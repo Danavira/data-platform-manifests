@@ -1,0 +1,37 @@
+apiVersion: clickhouse.altinity.com/v1
+kind: ClickHouseInstallation
+metadata:
+  name: clickhouse
+  namespace: clickhouse
+spec:
+  defaults:
+    templates:
+      podTemplate: clickhouse-pod
+      dataVolumeClaimTemplate: clickhouse-data
+  configuration:
+    clusters:
+      - name: clickhouse
+        layout:
+          shardsCount: 1
+          replicasCount: 1
+  templates:
+    podTemplates:
+      - name: clickhouse-pod
+        spec:
+          nodeSelector:
+            role: stateful
+          tolerations:
+            - key: role
+              value: stateful
+              effect: NoSchedule
+          containers:
+            - name: clickhouse
+              image: docker.io/clickhouse/clickhouse-server:latest
+    volumeClaimTemplates:
+      - name: clickhouse-data
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
