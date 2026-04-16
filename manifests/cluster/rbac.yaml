@@ -1,0 +1,5 @@
+# RoleBindings and ClusterRoleBindings.
+# User names must match the user field in kubeconfig.
+
+# TODO: bind cluster-admin or appropriate ClusterRole to your user
+# TODO: add service account bindings as needed (e.g. Airflow KubernetesPodOperator SA)

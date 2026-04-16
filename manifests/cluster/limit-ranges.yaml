@@ -1,0 +1,8 @@
+# LimitRanges per namespace.
+# Sets default CPU/memory requests and limits on containers that don't specify them.
+
+# --- postgres ---
+# TODO: define default container limits for postgres namespace
+
+# --- airflow ---
+# TODO: define default container limits for airflow namespace

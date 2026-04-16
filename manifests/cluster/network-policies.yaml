@@ -1,0 +1,10 @@
+# Network policies per namespace.
+# Default pattern: deny all ingress, then explicitly allow what's needed.
+
+# --- postgres ---
+# TODO: default-deny ingress for postgres namespace
+# TODO: allow ingress from airflow namespace on port 5432
+
+# --- airflow ---
+# TODO: default-deny ingress for airflow namespace
+# TODO: allow ingress from ingress-nginx on port 8080 (webserver)
