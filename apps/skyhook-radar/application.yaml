@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: radar
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: radar
+  sources:
+    - repoURL: https://skyhook-io.github.io/helm-charts
+      chart: radar
+      targetRevision: "1.4.3"
+      helm:
+        valueFiles:
+          - $values/apps/skyhook-radar/values.yaml
+    - repoURL: https://github.com/Danavira/data-platform-manifests.git
+      targetRevision: HEAD
+      ref: values
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
