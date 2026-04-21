@@ -12,8 +12,8 @@ spec:
     namespace: clickhouse
   source:
     repoURL: https://github.com/Danavira/data-platform-manifests.git
-    targetRevision: main
-    path: manifests/clickhouse
+    targetRevision: HEAD
+    path: apps/clickhouse
   syncPolicy:
     automated:
       prune: true
