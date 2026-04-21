@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: radar
+  name: vikunja
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "1"
@@ -9,20 +9,20 @@ spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: radar
+    namespace: vikunja
   sources:
-    - repoURL: https://skyhook-io.github.io/helm-charts
-      chart: radar
-      targetRevision: "1.4.3"
+    - repoURL: oci://ghcr.io/go-vikunja/helm-chart/vikunja
+      chart: vikunja
+      targetRevision: "1.0.0"
       helm:
         valueFiles:
-          - $values/apps/skyhook-radar/radar-values.yaml
+          - $values/apps/vikunja/values.yaml
     - repoURL: https://github.com/Danavira/data-platform-manifests.git
-      targetRevision: main
+      targetRevision: HEAD
       ref: values
   syncPolicy:
     automated:
       prune: true
-      selfHeal: true  
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
