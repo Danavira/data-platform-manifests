@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: metrics-server
+  name: postgres
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "1"
@@ -9,16 +9,14 @@ spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: kube-system
+    namespace: postgres
   source:
-    repoURL: https://kubernetes-sigs.github.io/metrics-server/
-    chart: metrics-server
-    targetRevision: "3.13.0"
-    helm:
-      values: |
-        args:
-          - --kubelet-insecure-tls
+    repoURL: https://github.com/Danavira/data-platform-manifests.git
+    targetRevision: HEAD
+    path: apps/postgres
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
