@@ -3,7 +3,4 @@ kind: Kustomization
 resources:
   - namespaces.yaml
   - nodes.yaml
-  - limit-ranges.yaml
-  - resource-quotas.yaml
-  - rbac.yaml
   - network-policies.yaml
