@@ -1,0 +1,8 @@
+# Resource quotas per namespace.
+# Prevents any single namespace from starving the cluster.
+
+# --- postgres ---
+# TODO: set CPU/memory limits appropriate for stateful node
+
+# --- airflow ---
+# TODO: set CPU/memory limits appropriate for compute node
