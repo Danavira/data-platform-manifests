@@ -16,9 +16,9 @@ spec:
       targetRevision: "1.16.0"
       helm:
         valueFiles:
-          - $values/apps/airflow/airflow-values.yaml
+          - $values/apps/airflow/values.yaml
     - repoURL: https://github.com/Danavira/data-platform-manifests.git
-      targetRevision: main
+      targetRevision: HEAD
       ref: values
   syncPolicy:
     automated:
