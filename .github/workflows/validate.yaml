@@ -1,0 +1,40 @@
+name: validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  kustomize-build:
+    name: kustomize build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # TODO: install kustomize and run `kustomize build` on each app with a kustomization.yaml
+      # Apps to cover: apps/postgres, apps/clickhouse, apps/hello-cicd, platform/cluster-config
+      # Example:
+      #   kustomize build apps/postgres
+      #   kustomize build apps/clickhouse
+      #   kustomize build platform/cluster-config
+
+  helm-lint:
+    name: helm lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # TODO: install helm and run `helm lint` / `helm template` on Helm-sourced apps
+      # Use `helm template <release> <chart> -f <values.yaml>` to catch bad values
+      # Apps to cover: apps/airflow, apps/monitoring, apps/vikunja
+
+  kubeconform:
+    name: kubeconform schema validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # TODO: install kubeconform and validate all rendered manifests against k8s schemas
+      # Run after kustomize build and helm template to validate the rendered output
+      # kubeconform docs: https://github.com/yannh/kubeconform
