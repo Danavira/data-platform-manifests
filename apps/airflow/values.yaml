@@ -16,10 +16,11 @@ migrateDatabaseJob:
 dags:
   gitSync:
     enabled: true
-    repo: https://github.com/Danavira/batch-etl.git
+    repo: https://github.com/Danavira/batch-elt.git
     branch: main
     subPath: dags
     period: 60s
+    credentialsSecret: airflow-git-credentials
 
 scheduler:
   nodeSelector:
