@@ -20,6 +20,18 @@ spec:
           effect: NoSchedule
       nodeSelector:
         role: stateful
+      # postgres official image (Debian) uses uid/gid 999 for the postgres user.
+      # fsGroup ensures the data PVC is group-writable on mount.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: run
+          emptyDir: {}
       containers:
         - name: postgres
           image: postgres:17
@@ -40,9 +52,19 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
+            # postgres writes its unix socket here; must be writable with readOnlyRootFilesystem
+            - name: run
+              mountPath: /var/run/postgresql
+            - name: tmp
+              mountPath: /tmp
   volumeClaimTemplates:
     - metadata:
         name: data
