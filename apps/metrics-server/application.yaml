@@ -18,6 +18,8 @@ spec:
       values: |
         args:
           - --kubelet-insecure-tls
+        podLabels:
+          k8s-app: metrics-server
   syncPolicy:
     automated:
       prune: true
