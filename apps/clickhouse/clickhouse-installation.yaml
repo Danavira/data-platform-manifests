@@ -31,6 +31,9 @@ spec:
             - key: role
               value: stateful
               effect: NoSchedule
+          securityContext:
+            seccompProfile:
+              type: RuntimeDefault
           containers:
             - name: clickhouse
               image: docker.io/clickhouse/clickhouse-server:26.3.8.4

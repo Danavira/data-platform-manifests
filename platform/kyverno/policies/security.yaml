@@ -112,6 +112,35 @@ spec:
               - =(securityContext):
                   =(runAsUser): ">0"
 ---
+# Require seccompProfile.type: RuntimeDefault (or Localhost) at the pod level.
+# Scoped to namespaces with raw manifests we own — Helm-managed namespaces
+# (airflow, monitoring, cert-manager, argocd, etc.) are excluded until their
+# charts are verified to set seccomp.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-seccomp-profile
+  annotations:
+    policies.kyverno.io/title: Require Seccomp Profile
+    policies.kyverno.io/severity: medium
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-seccomp-runtime-default
+      match:
+        any:
+        - resources:
+            kinds: [Pod]
+            namespaces: [postgres, clickhouse, minio]
+      validate:
+        message: "Pods must set securityContext.seccompProfile.type to RuntimeDefault or Localhost."
+        pattern:
+          spec:
+            securityContext:
+              seccompProfile:
+                type: "RuntimeDefault | Localhost"
+---
 # Detect hostNetwork, hostPID, or hostIPC set to true.
 # Excluded namespaces: kube-system (kube-proxy etc.), monitoring (node-exporter).
 # To allow a workload outside those namespaces add a namespace to the exclude list
