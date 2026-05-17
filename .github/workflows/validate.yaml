@@ -6,35 +6,278 @@ on:
     branches: [main]
 
 jobs:
-  kustomize-build:
-    name: kustomize build
+  # ── Render ──────────────────────────────────────────────────────────────────
+  # Kustomize-build all kustomized apps; helm-template all Helm apps.
+  # All subsequent jobs consume the "rendered" artifact so we only render once.
+  render:
+    name: Render manifests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     steps:
       - uses: actions/checkout@v4
 
-      # TODO: install kustomize and run `kustomize build` on each app with a kustomization.yaml
-      # Apps to cover: apps/postgres, apps/clickhouse, apps/hello-cicd, platform/cluster-config
-      # Example:
-      #   kustomize build apps/postgres
-      #   kustomize build apps/clickhouse
-      #   kustomize build platform/cluster-config
+      - name: Install kustomize
+        run: |
+          KUSTOMIZE_VERSION=v5.6.0
+          curl -sL "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz" \
+            | tar xz
+          sudo install -m 755 kustomize /usr/local/bin/
 
-  helm-lint:
-    name: helm lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+      - name: Install helm
+        run: curl -sSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-      # TODO: install helm and run `helm lint` / `helm template` on Helm-sourced apps
-      # Use `helm template <release> <chart> -f <values.yaml>` to catch bad values
-      # Apps to cover: apps/airflow, apps/monitoring, apps/vikunja
+      - name: Auth to GHCR (for private OCI charts)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io --username "${{ github.actor }}" --password-stdin
 
+      - name: Kustomize build
+        run: |
+          mkdir -p rendered
+          for dir in apps/postgres apps/hello-cicd apps/clickhouse platform/cluster-config; do
+            name=$(echo "$dir" | tr '/' '-')
+            kustomize build "$dir" > "rendered/${name}.yaml"
+          done
+
+      - name: Add Helm repos
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add jetstack            https://charts.jetstack.io
+          helm repo add metrics-server      https://kubernetes-sigs.github.io/metrics-server/
+          helm repo add argo                https://argoproj.github.io/argo-helm
+          helm repo update
+
+      - name: Helm template
+        run: |
+          helm template airflow oci://ghcr.io/danavira/helm-charts/airflow \
+            --version 1.16.0 -f apps/airflow/values.yaml \
+            > rendered/airflow.yaml
+
+          helm template monitoring prometheus-community/kube-prometheus-stack \
+            --version 82.18.0 -f apps/monitoring/values.yaml \
+            > rendered/monitoring.yaml
+
+          helm template vikunja oci://ghcr.io/go-vikunja/helm-chart/vikunja \
+            --version 1.0.0 -f apps/vikunja/values.yaml \
+            > rendered/vikunja.yaml
+
+          helm template cert-manager jetstack/cert-manager \
+            --version v1.20.0 --set crds.enabled=true \
+            > rendered/cert-manager.yaml
+
+          helm template metrics-server metrics-server/metrics-server \
+            --version 3.13.0 --set 'args={--kubelet-insecure-tls}' \
+            > rendered/metrics-server.yaml
+
+          helm template argocd-image-updater argo/argocd-image-updater \
+            --set config.registries[0].name="GitHub Container Registry" \
+            --set config.registries[0].prefix=ghcr.io \
+            --set config.registries[0].api_url=https://ghcr.io \
+            --set config.registries[0].defaultns=danavira \
+            > rendered/argocd-image-updater.yaml
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rendered
+          path: rendered/
+          retention-days: 1
+
+  # ── Schema validation ────────────────────────────────────────────────────────
   kubeconform:
-    name: kubeconform schema validation
+    name: Schema validation (kubeconform)
+    needs: render
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: rendered
+          path: rendered/
 
-      # TODO: install kubeconform and validate all rendered manifests against k8s schemas
-      # Run after kustomize build and helm template to validate the rendered output
-      # kubeconform docs: https://github.com/yannh/kubeconform
+      - name: Install kubeconform
+        run: |
+          KUBECONFORM_VERSION=v0.6.7
+          curl -sL "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz" \
+            | tar xz
+          sudo install -m 755 kubeconform /usr/local/bin/
+
+      - name: Validate rendered schemas
+        run: |
+          kubeconform \
+            -strict \
+            -ignore-missing-schemas \
+            -schema-location default \
+            -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
+            -summary \
+            rendered/
+
+  # ── kubesec ─────────────────────────────────────────────────────────────────
+  # Static risk-scoring for workload resources. Fails if any resource scores < 0
+  # (meaning a critical misconfiguration was found, e.g. privileged: true,
+  # missing resource limits, running as root).
+  kubesec:
+    name: kubesec security scan
+    needs: render
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: rendered
+          path: rendered/
+
+      - name: Install kubesec
+        run: |
+          KUBESEC_VERSION=v2.14.0
+          curl -sL "https://github.com/controlplaneio/kubesec/releases/download/${KUBESEC_VERSION}/kubesec_linux_amd64.tar.gz" \
+            | tar xz
+          sudo install -m 755 kubesec /usr/local/bin/
+
+      - name: Install PyYAML
+        run: pip install pyyaml --quiet
+
+      - name: Scan workload manifests
+        run: |
+          python3 - <<'EOF'
+          import json, subprocess, sys
+          from pathlib import Path
+          import yaml
+
+          WORKLOAD_KINDS = {"Pod", "Deployment", "StatefulSet", "DaemonSet", "Job", "CronJob"}
+          failed = False
+
+          for path in sorted(Path("rendered").glob("*.yaml")):
+              with open(path) as f:
+                  docs = list(yaml.safe_load_all(f))
+
+              for doc in docs:
+                  if not isinstance(doc, dict) or doc.get("kind") not in WORKLOAD_KINDS:
+                      continue
+                  doc_yaml = yaml.dump(doc)
+                  result = subprocess.run(
+                      ["kubesec", "scan", "/dev/stdin"],
+                      input=doc_yaml.encode(),
+                      capture_output=True,
+                  )
+                  try:
+                      data = json.loads(result.stdout)
+                  except json.JSONDecodeError:
+                      print(f"::warning::Could not parse kubesec output for {path}")
+                      continue
+
+                  for item in data:
+                      score = item.get("score", 0)
+                      obj   = item.get("object", str(path))
+                      if score < 0:
+                          print(f"::error file={path}::kubesec score {score} for {obj}")
+                          for c in item.get("scoring", {}).get("critical", []):
+                              print(f"  [{c['id']}] {c['reason']}")
+                          failed = True
+                      else:
+                          print(f"OK  {obj}: score={score}")
+
+          sys.exit(1 if failed else 0)
+          EOF
+
+  # ── Trivy ────────────────────────────────────────────────────────────────────
+  # IaC / config misconfiguration scan on source files. Covers:
+  # privileged, hostNetwork, missing limits, disallowed capabilities, etc.
+  # Runs independently of the render step (source files are sufficient).
+  trivy:
+    name: Trivy config scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: .
+          exit-code: '1'
+          severity: HIGH,CRITICAL
+          skip-dirs: docs,.git
+
+  # ── Kyverno ──────────────────────────────────────────────────────────────────
+  # Runs platform/kyverno/policies/ against all rendered resources.
+  # Enforce-mode policies cause a non-zero exit; Audit-mode violations are shown
+  # as warnings. Apply these same policies to the cluster for admission control.
+  kyverno:
+    name: Kyverno policy check
+    needs: render
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: rendered
+          path: rendered/
+
+      - name: Install kyverno CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          KYVERNO_VERSION=v1.13.5
+          gh release download "${KYVERNO_VERSION}" \
+            --repo kyverno/kyverno \
+            --pattern 'kyverno_linux_amd64.tar.gz' \
+            --output kyverno.tar.gz
+          tar xzf kyverno.tar.gz
+          sudo install -m 755 kyverno /usr/local/bin/
+          kyverno version
+
+      - name: Apply policies against rendered manifests
+        run: |
+          kyverno apply platform/kyverno/policies/ \
+            --resource 'rendered/*.yaml' \
+            --detailed-results
+
+  # ── Restricted-resource gate ─────────────────────────────────────────────────
+  # On PRs only. Fails if the diff introduces ClusterRole(Binding), Namespace,
+  # CRD, LoadBalancer, or Ingress changes without the 'platform-approved' label.
+  detect-restricted:
+    name: Restricted resource gate
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for restricted resource changes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RESTRICTED_KINDS="ClusterRole ClusterRoleBinding Namespace CustomResourceDefinition"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          BASE="${{ github.base_ref }}"
+
+          changed=$(git diff --name-only "origin/${BASE}...HEAD" | grep '\.yaml$' || true)
+          [ -z "$changed" ] && { echo "No YAML files changed."; exit 0; }
+
+          found=false
+          for f in $changed; do
+            [ -f "$f" ] || continue
+            for kind in $RESTRICTED_KINDS; do
+              if grep -qE "^kind: ${kind}$" "$f"; then
+                echo "::warning file=${f}::Restricted kind: ${kind}"
+                found=true
+              fi
+            done
+            if grep -qE "^  type: LoadBalancer$|^kind: Ingress$" "$f"; then
+              echo "::warning file=${f}::LoadBalancer or Ingress change"
+              found=true
+            fi
+          done
+
+          if [ "$found" = "true" ]; then
+            labels=$(gh pr view "${PR_NUMBER}" --json labels \
+              --jq '[.labels[].name] | join(",")' 2>/dev/null || echo "")
+            if ! echo "$labels" | grep -q "platform-approved"; then
+              echo "::error::Restricted resource changes require the 'platform-approved' label."
+              echo "Have the platform team review and apply that label to proceed."
+              exit 1
+            fi
+            echo "platform-approved label present — gate passed."
+          fi

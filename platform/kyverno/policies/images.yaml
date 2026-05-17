@@ -1,0 +1,122 @@
+---
+# Fail if any container image uses the ':latest' tag or has no tag at all.
+# Untagged images (e.g. 'nginx' with no colon) are also rejected because they
+# implicitly resolve to :latest.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-latest-tag
+  annotations:
+    policies.kyverno.io/title: Disallow Latest Image Tag
+    policies.kyverno.io/severity: high
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: deny-latest-or-no-tag
+      match:
+        any:
+        - resources:
+            kinds: [Pod]
+      exclude:
+        any:
+        - resources:
+            namespaces: [kube-system, kube-public, kube-node-lease]
+      validate:
+        message: "Image '{{ element.image }}' uses ':latest' or has no version tag. Pin to an explicit tag."
+        foreach:
+        - list: "request.object.spec.initContainers | [] + request.object.spec.containers | []"
+          deny:
+            conditions:
+              any:
+              # explicit :latest tag
+              - key: "{{ element.image }}"
+                operator: Equals
+                value: "*:latest"
+              # no tag at all (no colon in image string)
+              - key: "{{ contains(element.image, ':') }}"
+                operator: Equals
+                value: "false"
+---
+# Allowlist of permitted image registries.
+# Only evaluates images that have an explicit registry domain (a '.' in the
+# first path segment before the first '/').  Short-form Docker Hub official
+# images like 'postgres:17' or 'nginx:1.25' have no registry segment and are
+# implicitly allowed as docker.io/library/* images.
+#
+# To add a registry: append it to the AnyNotIn value list below.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-image-registries
+  annotations:
+    policies.kyverno.io/title: Restrict Image Registries
+    policies.kyverno.io/severity: medium
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: deny-unknown-registry
+      match:
+        any:
+        - resources:
+            kinds: [Pod]
+      exclude:
+        any:
+        - resources:
+            namespaces: [kube-system, kube-public, kube-node-lease]
+      validate:
+        message: "Image '{{ element.image }}' uses a disallowed registry. Allowed: ghcr.io, docker.io, registry.k8s.io, quay.io, gcr.io."
+        foreach:
+        - list: "request.object.spec.initContainers | [] + request.object.spec.containers | []"
+          deny:
+            conditions:
+              all:
+              # Only evaluate images whose first segment looks like a domain (contains '.')
+              - key: "{{ contains(element.image | split(@, '/') | [0], '.') }}"
+                operator: Equals
+                value: "true"
+              # That domain must be in the allowlist
+              - key: "{{ element.image | split(@, '/') | [0] }}"
+                operator: AnyNotIn
+                value:
+                - ghcr.io
+                - docker.io
+                - index.docker.io
+                - registry.k8s.io
+                - quay.io
+                - gcr.io
+---
+# Audit: production workloads should pin images by digest (@sha256:...) so that
+# the exact binary is immutable and immune to tag mutable re-pushes.
+# Scoped to pods with label platform.danavira.com/env: production.
+# Switch to Enforce once all prod images are digest-pinned.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-image-digest
+  annotations:
+    policies.kyverno.io/title: Require Image Digest for Production
+    policies.kyverno.io/severity: medium
+spec:
+  validationFailureAction: Audit
+  background: true
+  rules:
+    - name: require-digest
+      match:
+        any:
+        - resources:
+            kinds: [Pod]
+            selector:
+              matchLabels:
+                platform.danavira.com/env: production
+      validate:
+        message: "Production image '{{ element.image }}' must be pinned by digest (@sha256:...)."
+        foreach:
+        - list: "request.object.spec.initContainers | [] + request.object.spec.containers | []"
+          deny:
+            conditions:
+              all:
+              - key: "{{ contains(element.image, '@sha256:') }}"
+                operator: Equals
+                value: "false"

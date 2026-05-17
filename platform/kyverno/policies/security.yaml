@@ -1,0 +1,143 @@
+---
+# Detect explicit privileged: true on any container.
+# The =(field) pattern makes the field optional — it only validates when present.
+# An absent securityContext or absent privileged field is not flagged.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-privileged-containers
+  annotations:
+    policies.kyverno.io/title: Disallow Privileged Containers
+    policies.kyverno.io/severity: high
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: deny-privileged
+      match:
+        any:
+        - resources:
+            kinds: [Pod]
+      exclude:
+        any:
+        - resources:
+            namespaces: [kube-system, kube-public, kube-node-lease]
+      validate:
+        message: "Privileged containers are not allowed. Remove securityContext.privileged: true."
+        pattern:
+          spec:
+            =(initContainers):
+              - =(securityContext):
+                  =(privileged): "false"
+            containers:
+              - =(securityContext):
+                  =(privileged): "false"
+            =(ephemeralContainers):
+              - =(securityContext):
+                  =(privileged): "false"
+---
+# Detect explicit allowPrivilegeEscalation: true.
+# The default is true, so this only flags manifests that set it explicitly.
+# To also REQUIRE it to be false (recommended hardening), change the inner
+# pattern to remove the =(allowPrivilegeEscalation) optional marker.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-privilege-escalation
+  annotations:
+    policies.kyverno.io/title: Disallow Privilege Escalation
+    policies.kyverno.io/severity: high
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: deny-privilege-escalation
+      match:
+        any:
+        - resources:
+            kinds: [Pod]
+      exclude:
+        any:
+        - resources:
+            namespaces: [kube-system, kube-public, kube-node-lease]
+      validate:
+        message: "allowPrivilegeEscalation: true is not permitted. Set it to false."
+        pattern:
+          spec:
+            =(initContainers):
+              - =(securityContext):
+                  =(allowPrivilegeEscalation): "false"
+            containers:
+              - =(securityContext):
+                  =(allowPrivilegeEscalation): "false"
+            =(ephemeralContainers):
+              - =(securityContext):
+                  =(allowPrivilegeEscalation): "false"
+---
+# Detect runAsUser: 0 (explicit root) on pod or any container securityContext.
+# Does not catch images that default to root internally — pair with
+# container image scanning (trivy image) for full coverage.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-run-as-root
+  annotations:
+    policies.kyverno.io/title: Disallow Run As Root
+    policies.kyverno.io/severity: high
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: deny-root-user
+      match:
+        any:
+        - resources:
+            kinds: [Pod]
+      exclude:
+        any:
+        - resources:
+            namespaces: [kube-system, kube-public, kube-node-lease]
+      validate:
+        message: "runAsUser: 0 (root) is not allowed. Set runAsUser > 0 or runAsNonRoot: true."
+        pattern:
+          spec:
+            =(securityContext):
+              =(runAsUser): ">0"
+            =(initContainers):
+              - =(securityContext):
+                  =(runAsUser): ">0"
+            containers:
+              - =(securityContext):
+                  =(runAsUser): ">0"
+---
+# Detect hostNetwork, hostPID, or hostIPC set to true.
+# Excluded namespaces: kube-system (kube-proxy etc.), monitoring (node-exporter).
+# To allow a workload outside those namespaces add a namespace to the exclude list
+# rather than removing this policy.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-host-namespaces
+  annotations:
+    policies.kyverno.io/title: Disallow Host Namespaces
+    policies.kyverno.io/severity: high
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: deny-host-namespaces
+      match:
+        any:
+        - resources:
+            kinds: [Pod]
+      exclude:
+        any:
+        - resources:
+            namespaces: [kube-system, kube-public, kube-node-lease, monitoring]
+      validate:
+        message: "hostNetwork, hostPID, and hostIPC are not allowed outside excepted namespaces."
+        pattern:
+          spec:
+            =(hostNetwork): "false"
+            =(hostPID): "false"
+            =(hostIPC): "false"

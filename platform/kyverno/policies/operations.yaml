@@ -1,0 +1,124 @@
+---
+# Require CPU and memory requests on every container.
+# Without requests, the scheduler cannot make placement decisions and workloads
+# can starve other tenants on the node.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-resource-requests
+  annotations:
+    policies.kyverno.io/title: Require Resource Requests
+    policies.kyverno.io/severity: high
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-requests
+      match:
+        any:
+        - resources:
+            kinds: [Pod]
+      exclude:
+        any:
+        - resources:
+            namespaces: [kube-system, kube-public, kube-node-lease]
+      validate:
+        message: "Container '{{ element.name }}' is missing CPU or memory requests."
+        foreach:
+        - list: "request.object.spec.containers"
+          pattern:
+            resources:
+              requests:
+                cpu: "?*"
+                memory: "?*"
+---
+# Require memory limits on every container.
+# Unbounded memory allows a single workload to OOM the node.
+# CPU limits are intentionally not enforced here (CPU throttling is preferable
+# to OOM kills; set them in LimitRange if you want a cluster default).
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-memory-limits
+  annotations:
+    policies.kyverno.io/title: Require Memory Limits
+    policies.kyverno.io/severity: high
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-memory-limit
+      match:
+        any:
+        - resources:
+            kinds: [Pod]
+      exclude:
+        any:
+        - resources:
+            namespaces: [kube-system, kube-public, kube-node-lease]
+      validate:
+        message: "Container '{{ element.name }}' is missing a memory limit."
+        foreach:
+        - list: "request.object.spec.containers"
+          pattern:
+            resources:
+              limits:
+                memory: "?*"
+---
+# Audit: require the app.kubernetes.io/name label on all workload pods.
+# This label is used by dashboards, PDB selectors, and network policies.
+# Switch to Enforce once existing workloads are labelled.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-app-labels
+  annotations:
+    policies.kyverno.io/title: Require app.kubernetes.io Labels
+    policies.kyverno.io/severity: low
+spec:
+  validationFailureAction: Audit
+  background: true
+  rules:
+    - name: require-name-label
+      match:
+        any:
+        - resources:
+            kinds: [Pod]
+      exclude:
+        any:
+        - resources:
+            namespaces: [kube-system, kube-public, kube-node-lease]
+      validate:
+        message: "Pod is missing the 'app.kubernetes.io/name' label. Add it to enable observability tooling."
+        pattern:
+          metadata:
+            labels:
+              app.kubernetes.io/name: "?*"
+---
+# Audit: production workloads (label platform.danavira.com/env: production)
+# must run at least 2 replicas so a single node failure does not cause downtime.
+# Apply the label to Deployments/StatefulSets you consider production-grade.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-multiple-replicas
+  annotations:
+    policies.kyverno.io/title: Require Multiple Replicas for Production
+    policies.kyverno.io/severity: medium
+spec:
+  validationFailureAction: Audit
+  background: true
+  rules:
+    - name: require-replicas-gte-2
+      match:
+        any:
+        - resources:
+            kinds: [Deployment, StatefulSet]
+            selector:
+              matchLabels:
+                platform.danavira.com/env: production
+      validate:
+        message: "Production Deployments and StatefulSets must have at least 2 replicas."
+        pattern:
+          spec:
+            replicas: ">=2"

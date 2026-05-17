@@ -1,0 +1,14 @@
+# CODEOWNERS — approval gates for sensitive changes.
+# GitHub enforces these as required reviewers on PRs.
+# Enable branch protection on main (require PR + CODEOWNERS review) for these to take effect.
+
+# Platform-wide RBAC, namespaces, and network policies
+/platform/cluster-config/rbac.yaml          @danavira/platform
+/platform/cluster-config/namespaces.yaml    @danavira/platform
+/platform/cluster-config/network-policies.yaml @danavira/platform
+
+# Kyverno admission policies (changing these affects the whole cluster)
+/platform/kyverno/                          @danavira/platform
+
+# ArgoCD bootstrap and project configuration
+/argocd/                                    @danavira/platform
