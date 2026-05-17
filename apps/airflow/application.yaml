@@ -20,9 +20,6 @@ spec:
     - repoURL: https://github.com/Danavira/data-platform-manifests.git
       targetRevision: HEAD
       ref: values
-    - repoURL: https://github.com/Danavira/data-platform-configs.git
-      targetRevision: HEAD
-      path: apps/airflow
   syncPolicy:
     automated:
       prune: true
