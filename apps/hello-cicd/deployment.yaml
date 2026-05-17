@@ -13,6 +13,10 @@ spec:
       labels:
         app: hello-cicd
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
       containers:
         - name: hello-cicd
           image: ghcr.io/danavira/hello-cicd:6e61511

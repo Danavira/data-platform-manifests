@@ -264,7 +264,7 @@ jobs:
       - name: Apply policies against rendered manifests
         run: |
           kyverno apply platform/kyverno/policies/ \
-            --resource 'rendered/*.yaml' \
+            --resource rendered/ \
             --detailed-results
 
   # ── Restricted-resource gate ─────────────────────────────────────────────────
