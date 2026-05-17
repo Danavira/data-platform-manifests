@@ -58,7 +58,12 @@ spec:
       exclude:
         any:
         - resources:
-            namespaces: [kube-system, kube-public, kube-node-lease]
+            # airflow and vikunja Helm charts use Docker Hub user-namespaced
+            # images (e.g. typesense/typesense:x) which contain '/' but are
+            # not prefixed with 'docker.io/', so they cannot pass the allowlist
+            # without also opening up arbitrary registries. These namespaces are
+            # covered by trivy in CI instead.
+            namespaces: [kube-system, kube-public, kube-node-lease, airflow, vikunja]
       validate:
         message: "Image uses a disallowed registry. Allowed: ghcr.io, docker.io, registry.k8s.io, quay.io, gcr.io."
         deny:

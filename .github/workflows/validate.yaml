@@ -263,8 +263,22 @@ jobs:
 
       - name: Apply policies against rendered manifests
         run: |
+          # Only scan kustomize-built outputs (apps-*.yaml, platform-*.yaml).
+          # Helm chart outputs are validated by trivy; their rendered metadata
+          # often omits explicit namespace fields, so Kyverno CLI would treat
+          # every resource as namespace "default" and namespace-based exclusions
+          # would silently fail. Cluster-side admission handles Helm charts
+          # correctly because the webhook sees the real namespace.
+          RESOURCE_ARGS=""
+          for f in rendered/apps-*.yaml rendered/platform-*.yaml; do
+            [ -f "$f" ] && RESOURCE_ARGS="$RESOURCE_ARGS --resource $f"
+          done
+          if [ -z "$RESOURCE_ARGS" ]; then
+            echo "No kustomize-built files found to scan."
+            exit 1
+          fi
           kyverno apply platform/kyverno/policies/ \
-            --resource rendered/ \
+            $RESOURCE_ARGS \
             --detailed-results
 
   # ── Restricted-resource gate ─────────────────────────────────────────────────

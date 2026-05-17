@@ -28,6 +28,8 @@ spec:
               - monitoring
               - cert-manager
               - argocd
+              - airflow
+              - vikunja
       validate:
         message: "All containers must set CPU and memory requests."
         pattern:
@@ -67,6 +69,8 @@ spec:
               - monitoring
               - cert-manager
               - argocd
+              - airflow
+              - vikunja
       validate:
         message: "All containers must set a memory limit."
         pattern:
