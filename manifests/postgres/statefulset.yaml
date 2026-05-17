@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: postgres
+        app.kubernetes.io/name: postgres
     spec:
       tolerations:
         - key: role

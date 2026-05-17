@@ -1,17 +1,25 @@
 executor: KubernetesExecutor
 
+# Applied to all main component pod templates (scheduler, webserver, triggerer, etc.)
+labels:
+  app.kubernetes.io/name: airflow
+
 createUserJob:
   useHelmHooks: false
   applyCustomEnv: false
   jobAnnotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
+  labels:
+    app.kubernetes.io/name: airflow
 migrateDatabaseJob:
   useHelmHooks: false
   applyCustomEnv: false
   jobAnnotations:
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
+  labels:
+    app.kubernetes.io/name: airflow
 
 dags:
   gitSync:

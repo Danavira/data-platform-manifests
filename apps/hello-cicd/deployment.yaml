@@ -12,6 +12,7 @@ spec:
     metadata:
       labels:
         app: hello-cicd
+        app.kubernetes.io/name: hello-cicd
     spec:
       securityContext:
         runAsNonRoot: true

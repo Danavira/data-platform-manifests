@@ -96,7 +96,9 @@ spec:
       exclude:
         any:
         - resources:
-            namespaces: [kube-system, kube-public, kube-node-lease]
+            # monitoring: grafana init containers run as root to chown data volumes
+            # cert-manager: startupapicheck runs as root
+            namespaces: [kube-system, kube-public, kube-node-lease, monitoring, cert-manager]
       validate:
         message: "runAsUser: 0 (root) is not allowed. Set runAsUser > 0 or runAsNonRoot: true."
         pattern:
