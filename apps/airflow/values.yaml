@@ -24,7 +24,7 @@ migrateDatabaseJob:
 dags:
   gitSync:
     enabled: true
-    repo: https://github.com/Danavira/batch-elt.git
+    repo: https://github.com/Danavira/batch-elt-pipeline.git
     branch: main
     subPath: dags
     period: 60s
