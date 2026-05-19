@@ -1,16 +1,13 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: default-deny
+  name: default-deny-ingress
   namespace: vikunja
 spec:
   podSelector: {}
   policyTypes:
     - Ingress
-    - Egress
 ---
-# vikunja/vikunja image serves on port 3456; verify against the deployed service if
-# the bjw-s chart remaps it.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -29,10 +26,13 @@ spec:
         - protocol: TCP
           port: 3456
 ---
+# Single egress policy — k3s mishandles multiple Egress policyType policies in
+# the same namespace. Combining all allowed egress here creates the implicit
+# deny for everything else without triggering the k3s bug.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-postgres-egress
+  name: allow-egress
   namespace: vikunja
 spec:
   podSelector: {}
@@ -46,17 +46,6 @@ spec:
       ports:
         - protocol: TCP
           port: 5432
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-dns-egress
-  namespace: vikunja
-spec:
-  podSelector: {}
-  policyTypes:
-    - Egress
-  egress:
     - to:
         - namespaceSelector:
             matchLabels:
