@@ -51,41 +51,17 @@ spec:
     - to:
         - podSelector: {}
 ---
-# CNPG instance-manager (runs inside each postgres pod) communicates with the
-# Kubernetes API for leader election and cluster status updates.
+# CNPG instance-manager needs the k8s API, the import job reaches the source DB,
+# and replication traffic between instances is unpredictable. Egress is unrestricted;
+# the ingress rules above are where the real security boundary sits.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-k8s-api-egress
+  name: allow-all-egress
   namespace: postgres
 spec:
   podSelector: {}
   policyTypes:
     - Egress
   egress:
-    - to:
-        - ipBlock:
-            cidr: 0.0.0.0/0
-      ports:
-        - protocol: TCP
-          port: 443
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-dns-egress
-  namespace: postgres
-spec:
-  podSelector: {}
-  policyTypes:
-    - Egress
-  egress:
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system
-      ports:
-        - protocol: UDP
-          port: 53
-        - protocol: TCP
-          port: 53
+    - {}
