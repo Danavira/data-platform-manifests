@@ -1,31 +1,24 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: default-deny
+  name: default-deny-ingress
   namespace: airflow
 spec:
   podSelector: {}
   policyTypes:
     - Ingress
-    - Egress
 ---
-# KubernetesExecutor spawns task pods in this namespace; the scheduler, webserver,
-# and triggerer all communicate via internal Airflow APIs (Flask, gRPC).
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-intra-namespace
+  name: allow-intra-namespace-ingress
   namespace: airflow
 spec:
   podSelector: {}
   policyTypes:
     - Ingress
-    - Egress
   ingress:
     - from:
-        - podSelector: {}
-  egress:
-    - to:
         - podSelector: {}
 ---
 apiVersion: networking.k8s.io/v1
@@ -48,16 +41,22 @@ spec:
         - protocol: TCP
           port: 8080
 ---
+# Single egress policy — k3s mishandles multiple Egress policyType policies in
+# the same namespace. All allowed egress is combined here.
+# Covers: intra-namespace (executor pods), postgres, minio, DNS, and HTTPS
+# (git-sync to GitHub, KubernetesExecutor calls to k8s API, task external calls).
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-postgres-egress
+  name: allow-egress
   namespace: airflow
 spec:
   podSelector: {}
   policyTypes:
     - Egress
   egress:
+    - to:
+        - podSelector: {}
     - to:
         - namespaceSelector:
             matchLabels:
@@ -65,17 +64,6 @@ spec:
       ports:
         - protocol: TCP
           port: 5432
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-minio-egress
-  namespace: airflow
-spec:
-  podSelector: {}
-  policyTypes:
-    - Egress
-  egress:
     - to:
         - namespaceSelector:
             matchLabels:
@@ -83,17 +71,6 @@ spec:
       ports:
         - protocol: TCP
           port: 9000
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-dns-egress
-  namespace: airflow
-spec:
-  podSelector: {}
-  policyTypes:
-    - Egress
-  egress:
     - to:
         - namespaceSelector:
             matchLabels:
@@ -103,19 +80,6 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
----
-# Covers: git-sync to github.com (HTTPS DAG repo), KubernetesExecutor calls to the
-# k8s API (kubernetes.default.svc:443), and any task pods making external API calls.
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-https-egress
-  namespace: airflow
-spec:
-  podSelector: {}
-  policyTypes:
-    - Egress
-  egress:
     - to:
         - ipBlock:
             cidr: 0.0.0.0/0
