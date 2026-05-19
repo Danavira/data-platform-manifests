@@ -11,3 +11,10 @@ metadata:
   name: airflow
   labels:
     postgres-credentials: "true"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vikunja
+  labels:
+    postgres-credentials: "true"

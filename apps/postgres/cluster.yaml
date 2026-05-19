@@ -1,0 +1,57 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: postgres
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:17
+
+  seccompProfile:
+    type: RuntimeDefault
+
+  # Bootstrap by importing the airflow database from the existing StatefulSet.
+  # CNPG runs pg_dumpall --globals-only + pg_dump airflow on the source, then
+  # restores into the new cluster. The postgres superuser password is preserved
+  # via the globals dump, so the airflow-metadata secret password stays the same —
+  # only the host needs updating after cutover (postgres.postgres → postgres-rw.postgres).
+  bootstrap:
+    initdb:
+      import:
+        type: monolith
+        databases:
+          - airflow
+          - vikunja
+        source:
+          externalCluster: existing-postgres
+
+  externalClusters:
+    - name: existing-postgres
+      connectionParameters:
+        host: postgres.postgres.svc.cluster.local
+        user: postgres
+        dbname: postgres
+        sslmode: disable
+      password:
+        name: postgres-credentials
+        key: postgres-password
+
+  storage:
+    size: 10Gi
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  affinity:
+    nodeSelector:
+      role: stateful
+    tolerations:
+      - key: role
+        operator: Equal
+        value: stateful
+        effect: NoSchedule
