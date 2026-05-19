@@ -26,6 +26,22 @@ spec:
         - protocol: TCP
           port: 3456
 ---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-intra-namespace-ingress
+  namespace: vikunja
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 8108
+---
 # Single egress policy — k3s mishandles multiple Egress policyType policies in
 # the same namespace. Combining all allowed egress here creates the implicit
 # deny for everything else without triggering the k3s bug.
@@ -39,6 +55,11 @@ spec:
   policyTypes:
     - Egress
   egress:
+    - to:
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 8108
     - to:
         - namespaceSelector:
             matchLabels:

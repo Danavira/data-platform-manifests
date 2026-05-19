@@ -57,7 +57,6 @@ vikunja:
             publicurl: "https://vikunja.danavira.com"
             enableregistration: true
   env:
-    VIKUNJA_TYPESENSE_URL: ""
     VIKUNJA_DATABASE_TYPE: "postgres"
     VIKUNJA_DATABASE_HOST: "postgres-rw.postgres.svc.cluster.local"
     VIKUNJA_DATABASE_PORT: "5432"
