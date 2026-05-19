@@ -3,4 +3,4 @@ kind: Kustomization
 resources:
   - namespaces.yaml
   - nodes.yaml
-  - network-policies.yaml
+  - network-policies/
