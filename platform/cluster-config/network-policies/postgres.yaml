@@ -1,13 +1,12 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: default-deny
+  name: default-deny-ingress
   namespace: postgres
 spec:
   podSelector: {}
   policyTypes:
     - Ingress
-    - Egress
 ---
 # Covers both the legacy StatefulSet pod (app: postgres) and CNPG-managed pods
 # (cnpg.io/cluster: postgres) so clients stay connected throughout the migration.
@@ -32,36 +31,18 @@ spec:
         - protocol: TCP
           port: 5432
 ---
-# Required during migration: CNPG bootstrap pod connects to the existing StatefulSet
-# on 5432 to run pg_dump. Also covers future primary-to-replica replication traffic.
+# Allows CNPG primary→replica replication and intra-cluster health checks.
+# Egress-only direction: no Egress policyType is set on any policy in this
+# namespace so egress remains unrestricted by default.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-intra-namespace
+  name: allow-intra-namespace-ingress
   namespace: postgres
 spec:
   podSelector: {}
   policyTypes:
     - Ingress
-    - Egress
   ingress:
     - from:
         - podSelector: {}
-  egress:
-    - to:
-        - podSelector: {}
----
-# CNPG instance-manager needs the k8s API, the import job reaches the source DB,
-# and replication traffic between instances is unpredictable. Egress is unrestricted;
-# the ingress rules above are where the real security boundary sits.
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-all-egress
-  namespace: postgres
-spec:
-  podSelector: {}
-  policyTypes:
-    - Egress
-  egress:
-    - {}
