@@ -49,7 +49,7 @@ vikunja:
           service:
             # Required after Vikunja 1.0.0
             publicurl: "https://vikunja.danavira.com"
-            enableregistration: true
+            enableregistration: false
   env:
     VIKUNJA_DATABASE_TYPE: "postgres"
     VIKUNJA_DATABASE_HOST: "postgres-rw.postgres.svc.cluster.local"
