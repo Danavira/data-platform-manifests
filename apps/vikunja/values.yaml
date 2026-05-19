@@ -20,14 +20,8 @@ vikunja:
       size: 2Gi
       mountPath: /app/vikunja/files
       # storageClass: storage-class
-    # Persistence for SQLite database
     database:
-      enabled: true
-      # existingClaim: # your-claim
-      accessMode: ReadWriteOnce
-      size: 2Gi
-      mountPath: /db
-      # storageClass: storage-class
+      enabled: false
   ingress:
     main:
       enabled: true
