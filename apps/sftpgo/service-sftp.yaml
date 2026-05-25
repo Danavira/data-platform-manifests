@@ -9,5 +9,5 @@ spec:
   type: LoadBalancer
   ports:
     - name: sftp
-      port: 2222
+      port: 2022
       targetPort: sftp
