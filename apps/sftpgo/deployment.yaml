@@ -24,7 +24,7 @@ spec:
         - name: ghcr-pull-secret
       containers:
         - name: sftpgo
-          image: ghcr.io/sftpgo/sftpgo:v2.6.4
+          image: ghcr.io/drakkan/sftpgo:v2.6.4
           ports:
             - name: sftp
               containerPort: 2022
