@@ -18,6 +18,17 @@ createUserJob:
         secretKeyRef:
           name: airflow-admin-credentials
           key: password
+  args:
+    - "bash"
+    - "-c"
+    - |-
+      exec airflow users create \
+        -r "Admin" \
+        -u "admin" \
+        -e "admin@danavira.com" \
+        -f "Admin" \
+        -l "User" \
+        -p "$AIRFLOW_ADMIN_PASSWORD"
 migrateDatabaseJob:
   useHelmHooks: false
   applyCustomEnv: false
@@ -52,7 +63,7 @@ webserver:
     email: admin@danavira.com
     firstName: Admin
     lastName: User
-    password: ${AIRFLOW_ADMIN_PASSWORD}
+    password: unused  # set via AIRFLOW_ADMIN_PASSWORD env in createUserJob.args
   nodeSelector:
     role: compute
   tolerations:
