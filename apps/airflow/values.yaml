@@ -90,3 +90,10 @@ data:
   metadataSecretName: airflow-metadata
 
 webserverSecretKeySecretName: airflow-webserver-secret-key
+
+config:
+  core:
+    default_timezone: Asia/Jakarta
+  webserver:
+    default_ui_timezone: Asia/Jakarta
+    warn_deployment_exposure: 'False'
