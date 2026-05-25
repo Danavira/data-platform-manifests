@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sftpgo-sftp
+  namespace: sftpgo
+spec:
+  selector:
+    app: sftpgo
+  type: LoadBalancer
+  ports:
+    - name: sftp
+      port: 2222
+      targetPort: sftp
