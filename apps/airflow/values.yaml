@@ -12,6 +12,12 @@ createUserJob:
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
   labels:
     app.kubernetes.io/name: airflow
+  env:
+    - name: AIRFLOW_ADMIN_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: airflow-admin-credentials
+          key: password
 migrateDatabaseJob:
   useHelmHooks: false
   applyCustomEnv: false
@@ -39,6 +45,14 @@ scheduler:
       effect: NoSchedule
 
 webserver:
+  defaultUser:
+    enabled: true
+    role: Admin
+    username: admin
+    email: admin@danavira.com
+    firstName: Admin
+    lastName: User
+    password: ${AIRFLOW_ADMIN_PASSWORD}
   nodeSelector:
     role: compute
   tolerations:
@@ -46,17 +60,17 @@ webserver:
       value: compute
       effect: NoSchedule
 
-# ingress:
-#   web:
-#     enabled: true
-#     ingressClassName: nginx
-#     hosts:
-#       - name: airflow.danavira.com
-#         tls:
-#           enabled: true
-#           secretName: airflow-tls
-#     annotations:
-#       cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+ingress:
+  web:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - name: airflow.danavira.com
+        tls:
+          enabled: true
+          secretName: airflow-tls
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-cloudflare
 
 postgresql:
   enabled: false
