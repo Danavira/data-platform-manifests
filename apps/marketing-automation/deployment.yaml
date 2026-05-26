@@ -22,7 +22,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: marketing-automation
-          image: ghcr.io/danavira/marketing-automation:c1b1e4aa0273b533a414701a0705f8fe55dce502
+          image: ghcr.io/danavira/marketing-automation:14611b684fefb16db3bc8bf85bba7cb28c6a42f4
           imagePullPolicy: Always
           ports:
             - name: http
