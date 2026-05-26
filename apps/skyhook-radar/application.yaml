@@ -13,7 +13,7 @@ spec:
   sources:
     - repoURL: https://skyhook-io.github.io/helm-charts
       chart: radar
-      targetRevision: "1.5.9"
+      targetRevision: "1.7.0"
       helm:
         valueFiles:
           - $values/apps/skyhook-radar/values.yaml
