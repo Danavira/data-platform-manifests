@@ -2,55 +2,38 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny
-  namespace: clickhouse
+  namespace: marketing-automation
 spec:
   podSelector: {}
   policyTypes:
     - Ingress
     - Egress
 ---
-# The clickhouse-operator connects directly to pods on 8123/9000 to provision users,
-# run health checks, and manage configuration.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-operator-management
-  namespace: clickhouse
+  name: allow-ingress-from-ingress-nginx
+  namespace: marketing-automation
 spec:
-  podSelector: {}
+  podSelector:
+    matchLabels:
+      app: marketing-automation
   policyTypes:
     - Ingress
   ingress:
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: clickhouse-operator
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-monitoring-scrape
-  namespace: clickhouse
-spec:
-  podSelector: {}
-  policyTypes:
-    - Ingress
-  ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: monitoring
+              kubernetes.io/metadata.name: ingress-nginx
       ports:
         - protocol: TCP
-          port: 8123
-        - protocol: TCP
-          port: 9000
+          port: 80
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-dns-egress
-  namespace: clickhouse
+  namespace: marketing-automation
 spec:
   podSelector: {}
   policyTypes:
@@ -69,17 +52,19 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-marketing-automation-ingress
-  namespace: clickhouse
+  name: allow-clickhouse-egress
+  namespace: marketing-automation
 spec:
-  podSelector: {}
+  podSelector:
+    matchLabels:
+      app: marketing-automation
   policyTypes:
-    - Ingress
-  ingress:
-    - from:
+    - Egress
+  egress:
+    - to:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: marketing-automation
+              kubernetes.io/metadata.name: clickhouse
       ports:
         - protocol: TCP
           port: 8123

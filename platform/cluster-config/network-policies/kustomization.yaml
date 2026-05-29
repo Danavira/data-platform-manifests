@@ -13,3 +13,4 @@ resources:
   - cert-manager.yaml
   - hello-cicd.yaml
   - cnpg-system.yaml
+  - marketing-automation.yaml
