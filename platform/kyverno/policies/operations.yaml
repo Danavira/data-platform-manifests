@@ -82,7 +82,7 @@ spec:
 ---
 # Audit: require the app.kubernetes.io/name label on workload pods.
 # Excluded namespaces are managed by third-party Helm charts whose templates
-# we cannot modify. Our own workloads (hello-cicd, postgres) must comply.
+# we cannot modify. Our own workloads (postgres) must comply.
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:

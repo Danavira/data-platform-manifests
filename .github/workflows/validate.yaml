@@ -34,7 +34,7 @@ jobs:
       - name: Kustomize build
         run: |
           mkdir -p rendered
-          for dir in apps/postgres apps/hello-cicd apps/clickhouse apps/marketing-automation platform/cluster-config; do
+          for dir in apps/postgres apps/clickhouse platform/cluster-config; do
             name=$(echo "$dir" | tr '/' '-')
             kustomize build "$dir" > "rendered/${name}.yaml"
           done

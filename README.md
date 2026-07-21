@@ -19,10 +19,6 @@ data-platform-manifests/
     ├── argocd-image-updater/
     │   └── argocd-image-updater-application.yaml
     │
-    ├── hello-cicd/
-    │   ├── hello-cicd-application.yaml
-    │   └── deployment.yaml
-    │
     ├── vikunja/
     │   ├── vikunja-application.yaml
     │   ├── vikunja-values.yaml

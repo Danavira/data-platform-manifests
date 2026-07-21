@@ -65,23 +65,3 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-marketing-automation-ingress
-  namespace: clickhouse
-spec:
-  podSelector: {}
-  policyTypes:
-    - Ingress
-  ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: marketing-automation
-      ports:
-        - protocol: TCP
-          port: 8123
-        - protocol: TCP
-          port: 9000
