@@ -43,3 +43,14 @@ nodeExporter:
 
 kubeStateMetrics:
   enabled: true
+
+# k3s embeds these components in the k3s binary (no pods to select), so the
+# chart's Services/ServiceMonitors for them never match anything.
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
+kubeEtcd:
+  enabled: false
