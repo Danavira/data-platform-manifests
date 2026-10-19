@@ -45,6 +45,8 @@ dags:
     branch: main
     subPath: dags
     period: 60s
+    # Tolerate transient DNS/network blips instead of killing the sidecar on the first failed fetch
+    maxFailures: 5
     credentialsSecret: airflow-git-credentials
 
 scheduler:
