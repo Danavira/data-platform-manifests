@@ -1,0 +1,58 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: danavira-website
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-nginx
+  namespace: danavira-website
+spec:
+  podSelector:
+    matchLabels:
+      app: danavira-website
+      component: web
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+# Single egress policy — k3s mishandles multiple Egress policyType policies in
+# the same namespace. Combining all allowed egress here creates the implicit
+# deny for everything else without triggering the k3s bug.
+#
+# DNS only. The site is files on disk: it calls no database, no API, and
+# nothing outside the cluster. The web fonts it references are fetched by the
+# visitor's browser, not by this pod. Anything else leaving these pods would
+# mean the image is doing something it was not built to do.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress
+  namespace: danavira-website
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
