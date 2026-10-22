@@ -18,3 +18,12 @@ metadata:
   name: vikunja
   labels:
     postgres-credentials: "true"
+---
+# Declared here rather than left to the Application's CreateNamespace=true:
+# cluster-config syncs at wave 0 and carries this namespace's NetworkPolicies,
+# so the namespace has to exist before that sync rather than at wave 1.
+# No postgres-credentials label — the site is static files in the image.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: danavira-website
