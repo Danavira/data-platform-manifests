@@ -24,6 +24,7 @@ spec:
         runAsNonRoot: true
         runAsUser: 101
         runAsGroup: 101
+        fsGroup: 101
         seccompProfile:
           type: RuntimeDefault
       imagePullSecrets:
@@ -60,6 +61,10 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
       volumes:
         - name: tmp
+          emptyDir: {}
+        - name: nginx-cache
           emptyDir: {}
