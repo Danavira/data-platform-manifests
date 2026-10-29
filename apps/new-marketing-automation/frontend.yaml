@@ -34,7 +34,7 @@ spec:
           image: ghcr.io/danavira/new-marketing-automation-frontend:latest
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: 80
           readinessProbe:
             httpGet:
               path: /login
