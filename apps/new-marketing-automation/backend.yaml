@@ -76,9 +76,6 @@ spec:
                   name: marketing-automation-credentials
                   key: DASHSCOPE_API_KEY
                   optional: true
-          volumeMounts:
-            - name: data
-              mountPath: /app/dbdata
           readinessProbe:
             httpGet:
               path: /api/health
