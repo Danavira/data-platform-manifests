@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: marketing-automation-backend
+  namespace: new-marketing-automation
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: new-marketing-automation
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: new-marketing-automation
+        component: backend
+        app.kubernetes.io/name: new-marketing-automation
+        app.kubernetes.io/instance: new-marketing-automation
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/part-of: marketing-automation
+    spec:
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      containers:
+        - name: backend
+          image: ghcr.io/danavira/new-marketing-automation-backend:latest
+          ports:
+            - name: api
+              containerPort: 8000
+          env:
+            - name: ENVIRONMENT
+              value: production
+            - name: DATABASE_URL
+              value: sqlite:////app/dbdata/marketing_automation.db
+            - name: INITIAL_ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: marketing-automation-credentials
+                  key: INITIAL_ADMIN_USERNAME
+            - name: INITIAL_ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: marketing-automation-credentials
+                  key: INITIAL_ADMIN_EMAIL
+            - name: INITIAL_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: marketing-automation-credentials
+                  key: INITIAL_ADMIN_PASSWORD
+            - name: AUTH_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: marketing-automation-credentials
+                  key: AUTH_JWT_SECRET
+            - name: SEED_DEMO_USERS
+              value: "false"
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: marketing-automation-credentials
+                  key: GEMINI_API_KEY
+                  optional: true
+            - name: DASHSCOPE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: marketing-automation-credentials
+                  key: DASHSCOPE_API_KEY
+                  optional: true
+          volumeMounts:
+            - name: data
+              mountPath: /app/dbdata
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: api
+            initialDelaySeconds: 8
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: api
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: marketing-automation-data

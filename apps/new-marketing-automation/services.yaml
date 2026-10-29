@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: marketing-automation-backend
+  namespace: new-marketing-automation
+spec:
+  selector:
+    app: new-marketing-automation
+    component: backend
+  ports:
+    - name: api
+      port: 8000
+      targetPort: api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: marketing-automation-frontend
+  namespace: new-marketing-automation
+spec:
+  type: NodePort
+  selector:
+    app: new-marketing-automation
+    component: frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      nodePort: 30080

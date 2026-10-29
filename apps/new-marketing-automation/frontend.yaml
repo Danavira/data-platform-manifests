@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: marketing-automation-frontend
+  namespace: new-marketing-automation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: new-marketing-automation
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: new-marketing-automation
+        component: frontend
+        app.kubernetes.io/name: new-marketing-automation
+        app.kubernetes.io/instance: new-marketing-automation
+        app.kubernetes.io/component: frontend
+        app.kubernetes.io/part-of: marketing-automation
+    spec:
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      containers:
+        - name: frontend
+          image: ghcr.io/danavira/new-marketing-automation-frontend:latest
+          ports:
+            - name: http
+              containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /login
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /login
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
