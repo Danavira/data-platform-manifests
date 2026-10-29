@@ -20,6 +20,12 @@ spec:
         app.kubernetes.io/part-of: marketing-automation
     spec:
       automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
       imagePullSecrets:
         - name: ghcr-pull-secret
       containers:
@@ -27,7 +33,7 @@ spec:
           image: ghcr.io/danavira/new-marketing-automation-frontend:latest
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 8080
           readinessProbe:
             httpGet:
               path: /login
@@ -46,3 +52,14 @@ spec:
               memory: 32Mi
             limits:
               memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
