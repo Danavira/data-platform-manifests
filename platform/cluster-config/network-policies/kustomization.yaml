@@ -9,6 +9,7 @@ resources:
   - monitoring.yaml
   - radar.yaml
   - vikunja.yaml
+  - danavira-website.yaml
   - argocd.yaml
   - cert-manager.yaml
   - cnpg-system.yaml

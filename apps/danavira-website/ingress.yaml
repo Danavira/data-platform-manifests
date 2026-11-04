@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: danavira-website
+  namespace: danavira-website
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
+    # Picks one canonical hostname. ingress-nginx generates a second server
+    # block for www.danavira.com that 301s to the apex, so both names resolve
+    # but only one is ever indexed or bookmarked. The redirect is served over
+    # TLS, which is why www is listed in the tls block below even though it has
+    # no rule of its own — without it the browser would hit a cert mismatch
+    # before ever seeing the redirect.
+    nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: danavira.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: danavira-website
+                port:
+                  name: http
+  tls:
+    - secretName: danavira-website-tls
+      hosts:
+        - danavira.com
+        - www.danavira.com

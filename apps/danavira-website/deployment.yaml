@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: danavira-website
+  namespace: danavira-website
+spec:
+  # Two replicas because the site holds no state — every pod serves the same
+  # baked-in files — so a rolling update swaps them with no window where the
+  # apex domain 502s. Both land on the compute node (it is the only one that
+  # tolerates the taint below), so this buys deploy continuity, not node HA.
+  replicas: 2
+  selector:
+    matchLabels:
+      app: danavira-website
+      component: web
+  template:
+    metadata:
+      labels:
+        # app/component drive the Service and NetworkPolicy selectors; the
+        # app.kubernetes.io/* set satisfies the require-app-labels policy.
+        # Deliberately NOT labelled platform.danavira.com/env: production —
+        # that also activates require-image-digest, and the image is tracked
+        # by tag here rather than by digest. Add the label once tags are
+        # resolved to digests.
+        app: danavira-website
+        component: web
+        app.kubernetes.io/name: danavira-website
+        app.kubernetes.io/instance: danavira-website
+        app.kubernetes.io/component: web
+        app.kubernetes.io/part-of: data-platform
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        # 101 is the nginx user baked into nginx-unprivileged, which owns the
+        # served files. No fsGroup: there is no volume to take ownership of.
+        runAsUser: 101
+        runAsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      nodeSelector:
+        role: compute
+      tolerations:
+        - key: role
+          operator: Equal
+          value: compute
+          effect: NoSchedule
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      containers:
+        - name: web
+          image: ghcr.io/danavira/danavira-website:0.1.0
+          ports:
+            - name: http
+              containerPort: 8080
+          # /healthz is served by nginx itself without touching the filesystem,
+          # so a failure means the process is wedged rather than that a file is
+          # missing. Static files need no warm-up, hence the short delays.
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              # No CPU limit, per the platform's require-memory-limits comment:
+              # throttling is worse than letting a short burst finish.
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            # nginx writes its pid and any request temp files here; site.conf
+            # points every *_temp_path at /tmp so nothing else needs to be
+            # writable on the read-only root filesystem.
+            - name: tmp
+              mountPath: /tmp
+            - name: cache
+              mountPath: /var/cache/nginx
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: cache
+          emptyDir: {}
