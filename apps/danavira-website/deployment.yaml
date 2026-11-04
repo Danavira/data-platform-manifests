@@ -49,7 +49,7 @@ spec:
         - name: ghcr-pull-secret
       containers:
         - name: web
-          image: ghcr.io/danavira/danavira-website:0.1.0
+          image: ghcr.io/danavira/danavira-website:0.1.1
           ports:
             - name: http
               containerPort: 8080

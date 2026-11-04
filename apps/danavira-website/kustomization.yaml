@@ -10,4 +10,4 @@ resources:
 # :<version> on a v* tag; this tracks the tagged releases.
 images:
   - name: ghcr.io/danavira/danavira-website
-    newTag: "0.1.0"
+    newTag: "0.1.1"
