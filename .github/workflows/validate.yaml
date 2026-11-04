@@ -200,15 +200,29 @@ jobs:
   # IaC / config misconfiguration scan on source files. Covers:
   # privileged, hostNetwork, missing limits, disallowed capabilities, etc.
   # Runs independently of the render step (source files are sufficient).
-  # Uses the install script rather than the GitHub Action to avoid action-tag
-  # drift (the action's tag versioning is independent of trivy itself).
+  # Installs a pinned release straight from GitHub rather than via the GitHub
+  # Action (action-tag drift: its tags version independently of trivy) or the
+  # install script (it fetches the tarball from get.trivy.dev, which stopped
+  # resolving in Nov 2026 and broke every run). The checksum is hardcoded so a
+  # tampered or re-tagged release fails here instead of running in CI. To bump:
+  # change TRIVY_VERSION and take the Linux-64bit.tar.gz line from that
+  # release's trivy_<version>_checksums.txt.
   trivy:
     name: Trivy config scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install trivy
-        run: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+        env:
+          TRIVY_VERSION: 0.76.1
+          TRIVY_SHA256: c7cbe3137fb8a48a17574bede3dd6beb16742d1e9772929940fc90082c39d9c0
+        run: |
+          tarball="trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz"
+          curl -fsSL --retry 3 -o "/tmp/${tarball}" \
+            "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/${tarball}"
+          echo "${TRIVY_SHA256}  /tmp/${tarball}" | sha256sum -c -
+          sudo tar -xzf "/tmp/${tarball}" -C /usr/local/bin trivy
+          trivy --version
       - name: Scan configs
         run: trivy config . --exit-code 1 --severity HIGH,CRITICAL --skip-dirs docs,.git
 
