@@ -1,0 +1,24 @@
+# ImageUpdater resources for argocd-image-updater (v1 is configured by CRD,
+# not Application annotations). Kept in its own Application so a bad or
+# unknown resource here cannot block the apps it updates. Wave 2: after the
+# image updater chart (wave 1) has installed the CRD.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: image-updater-config
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  source:
+    repoURL: https://github.com/Danavira/data-platform-manifests.git
+    targetRevision: HEAD
+    path: apps/image-updater-config
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

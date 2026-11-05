@@ -5,9 +5,10 @@ resources:
   - service.yaml
   - ingress.yaml
 
-# Single place to bump the deployed version. The build workflow in the
-# danavira-website repo publishes :sha-<short> on every push to main and
-# :<version> on a v* tag; this tracks the tagged releases.
+# The deployed version. The build workflow in the danavira-website repo
+# publishes :sha-<short> on every push to main and :<version> on a v* tag.
+# argocd-image-updater (apps/image-updater-config) commits the newest :sha-
+# tag here automatically; edit by hand only to pin or roll back.
 images:
   - name: ghcr.io/danavira/danavira-website
     newTag: "0.3.0"

@@ -1,0 +1,29 @@
+# Continuous delivery for danavira.com. Every push to main in
+# Danavira/danavira-website (including CMS saves at /admin/) publishes
+# ghcr.io/danavira/danavira-website:sha-<short>. This picks the newest of those
+# and commits the new tag to apps/danavira-website/kustomization.yaml, using
+# Argo CD's github-creds repo credentials. The package is public, so no
+# registry credentials are needed.
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: danavira-website
+  namespace: argocd
+spec:
+  writeBackConfig:
+    method: git
+    gitConfig:
+      # The Application tracks HEAD, which is not a branch name.
+      branch: main
+      writeBackTarget: kustomization
+  applicationRefs:
+    - namePattern: danavira-website
+      images:
+        - alias: web
+          imageName: ghcr.io/danavira/danavira-website
+          commonUpdateSettings:
+            updateStrategy: newest-build
+            allowTags: 'regexp:^sha-[0-9a-f]{7}$'
+          manifestTargets:
+            kustomize:
+              name: ghcr.io/danavira/danavira-website
