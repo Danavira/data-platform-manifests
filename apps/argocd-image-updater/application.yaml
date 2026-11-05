@@ -20,7 +20,6 @@ spec:
             - name: GitHub Container Registry
               prefix: ghcr.io
               api_url: https://ghcr.io
-              credentials: secret:argocd/ghcr-creds#token
               defaultns: danavira
               insecure: false
         authScripts:
