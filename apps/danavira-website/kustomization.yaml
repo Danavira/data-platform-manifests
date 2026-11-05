@@ -11,4 +11,5 @@ resources:
 # tag here automatically; edit by hand only to pin or roll back.
 images:
   - name: ghcr.io/danavira/danavira-website
-    newTag: "0.3.0"
+    newTag: sha-cbcc8dd
+    newName: ghcr.io/danavira/danavira-website
